@@ -15,9 +15,37 @@ unsigned int DeltaTime(unsigned int* lastTick, unsigned int* firstTick)
 	return deltaTime;
 }
 
+SDL_Texture* LoadTexture(const char* filename, int* width, int* height, SDL_Renderer* renderer)
+{
+	// Loading an image
+	// Here the surface is the information about the image. It contains the color data, width, height and other info.
+	SDL_Surface* surface = IMG_Load(filename);
+	if (!surface)
+	{
+		printf("Unable to load an image %s. Error: %s", filename, IMG_GetError());
+		return nullptr;
+	}
+
+	// Now we use the renderer and the surface to create a texture which we later can draw on the screen.
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+	if (!texture)
+	{
+		printf("Unable to create a texture. Error: %s", SDL_GetError());
+		return nullptr;
+	}
+
+	// In a moment we will get rid of the surface as we no longer need that. But let's keep the image dimensions.
+	*width = surface->w;
+	*height = surface->h;
+
+	// Bye-bye the surface
+	SDL_FreeSurface(surface);
+
+	return texture;
+}
+
 int main()
 {
-
 	int screenWidth = 1980;
 	int screenHeight = 1080;
 
@@ -34,11 +62,7 @@ int main()
 
 	float speed = 0.75f;
 
-
-	char image_path[] = "tfg2.2.png";
-
-
-	#pragma region Init
+#pragma region Init
 	// Init SDL libraries
 	SDL_SetMainReady(); // Just leave it be
 	int result = 0;
@@ -73,31 +97,14 @@ int main()
 	// Setting the color of an empty window (RGBA). You are free to adjust it.
 	SDL_SetRenderDrawColor(renderer, 129, 162, 82, 255);
 
-	// Loading an image
-	// Here the surface is the information about the image. It contains the color data, width, height and other info.
-	SDL_Surface* surface = IMG_Load(image_path);
-	if (!surface)
-	{
-		printf("Unable to load an image %s. Error: %s", image_path, IMG_GetError());
-		return -1;
-	}
+	const char* image_path = "tfg2.2.png";
 
-	// Now we use the renderer and the surface to create a texture which we later can draw on the screen.
-	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-	if (!texture)
-	{
-		printf("Unable to create a texture. Error: %s", SDL_GetError());
-		return -1;
-	}
+	int tex_width = 0;
+	int tex_height = 0;
 
-	// In a moment we will get rid of the surface as we no longer need that. But let's keep the image dimensions.
-	int tex_width = surface->w;
-	int tex_height = surface->h;
+	SDL_Texture* texture = LoadTexture(image_path, &tex_width, &tex_height, renderer);
 
-	// Bye-bye the surface
-	SDL_FreeSurface(surface);
-
-	#pragma endregion
+#pragma endregion
 	bool done = false;
 	SDL_Event sdl_event;
 
@@ -129,7 +136,7 @@ int main()
 					break;
 				}
 			}
-			else if (sdl_event.type == SDL_MOUSEBUTTONDOWN) 
+			else if (sdl_event.type == SDL_MOUSEBUTTONDOWN)
 			{
 				if (sdl_event.button.button == SDL_BUTTON_LEFT)
 				{
@@ -168,7 +175,6 @@ int main()
 			y -= speed * deltaTime;
 		}
 
-
 		// Here is the rectangle where the image will be on the screen
 		SDL_Rect rect;
 		rect.x = (int)round(x - tex_width / 2); // Counting from the image's center but that's up to you
@@ -189,7 +195,6 @@ int main()
 
 		// next frame...
 	}
-
 
 	SDL_DestroyTexture(texture);
 	// If we reached here then the main loop stoped
