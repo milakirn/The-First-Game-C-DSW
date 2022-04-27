@@ -5,7 +5,6 @@
 #include "Main.h"
 
 //Проект ещё будет дорабатываться :)
-//Project for my C++ Game Development (C)
 
 unsigned int DeltaTime(unsigned int* lastTick, unsigned int* firstTick)
 {
