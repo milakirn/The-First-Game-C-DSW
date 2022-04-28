@@ -59,14 +59,14 @@ int main()
 
 	unsigned int deltaTime = 0;
 
-	float speed = 0.75f;
+	float speed = 0.5f;
 
 	const char* image_path = "tfg2.2.png";
 
 	int tex_width = 0;
 	int tex_height = 0;
 
-#pragma region Init
+#pragma region InitSDL
 	// Init SDL libraries
 	SDL_SetMainReady(); // Just leave it be
 	int result = 0;
@@ -102,7 +102,6 @@ int main()
 	SDL_SetRenderDrawColor(renderer, 129, 162, 82, 255);
 
 #pragma endregion
-
 
 	SDL_Texture* texture = LoadTexture(image_path, &tex_width, &tex_height, renderer);
 
