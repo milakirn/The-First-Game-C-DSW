@@ -48,8 +48,8 @@ int main()
 	int screenWidth = 1980;
 	int screenHeight = 1080;
 
-	float x = screenWidth / 2;
-	float y = screenHeight / 2;
+	float x = screenWidth / 15;
+	float y = screenHeight / 11;
 
 	int currX = x;
 	int currY = y;
@@ -60,6 +60,11 @@ int main()
 	unsigned int deltaTime = 0;
 
 	float speed = 0.75f;
+
+	const char* image_path = "tfg2.2.png";
+
+	int tex_width = 0;
+	int tex_height = 0;
 
 #pragma region Init
 	// Init SDL libraries
@@ -96,14 +101,23 @@ int main()
 	// Setting the color of an empty window (RGBA). You are free to adjust it.
 	SDL_SetRenderDrawColor(renderer, 129, 162, 82, 255);
 
-	const char* image_path = "tfg2.2.png";
+#pragma endregion
 
-	int tex_width = 0;
-	int tex_height = 0;
 
 	SDL_Texture* texture = LoadTexture(image_path, &tex_width, &tex_height, renderer);
 
+#pragma region InitPlate
+	SDL_Surface* board;
+
+	board = SDL_CreateRGBSurface(0, 15, 11, 32, 0, 0, 0, 0);
+
+	SDL_FillRect(board, NULL, SDL_MapRGB(board->format, 129, 162, 82));
+
+	SDL_Texture* gamePlate = SDL_CreateTextureFromSurface(renderer, board);
+	SDL_FreeSurface(board);
 #pragma endregion
+	unsigned char arr[11][15];
+
 	bool done = false;
 	SDL_Event sdl_event;
 
@@ -174,6 +188,16 @@ int main()
 			y -= speed * deltaTime;
 		}
 
+
+		SDL_Rect pole;
+		pole.x = 0;
+		pole.y = 0;
+		pole.w = (int)screenWidth;
+		pole.h = (int)screenHeight;
+
+		SDL_RenderCopyEx(renderer, gamePlate, nullptr, &pole, 0, nullptr, SDL_FLIP_NONE);
+
+
 		// Here is the rectangle where the image will be on the screen
 		SDL_Rect rect;
 		rect.x = (int)round(x - tex_width / 2); // Counting from the image's center but that's up to you
@@ -188,6 +212,7 @@ int main()
 			0, // An angle in degrees for rotation
 			nullptr, // The center of the rotation (when nullptr, the rect center is taken)
 			SDL_FLIP_NONE); // We don't want to flip the image
+
 
 // Showing the screen to the player
 		SDL_RenderPresent(renderer);
