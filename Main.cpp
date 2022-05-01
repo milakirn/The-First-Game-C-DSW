@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <Windows.h>
 #define SDL_MAIN_HANDLED
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
@@ -261,12 +262,12 @@ int main()
 
 	barricade.Init(SDL_CreateTextureFromSurface(renderer, temp), widthInPixels, heightInPixels);
 
-	player.Init(texture, widthInPixels, heightInPixels, 5, 6);
+	player.Init(texture, widthInPixels, heightInPixels, 5, 9);
 	SDL_FreeSurface(temp);
 
 	Stack stack_1, stack_2;
-	Stack* checkNow = &stack_1;
-	Stack* checkNext = &stack_2;
+	Stack* ñheckNow = &stack_1;
+	Stack* chechNext = &stack_2;
 	Stack path;
 
 	SDL_Event sdl_event;
@@ -304,10 +305,10 @@ int main()
 				if (sdl_event.button.button == SDL_BUTTON_LEFT)
 				{
 					SDL_GetMouseState(&currX, &currY);
-					checkNow->Clear();
-					checkNext->Clear();
+					ñheckNow->Clear();
+					chechNext->Clear();
 					path.Clear();
-					checkNow->AddElement(player.pos.x, player.pos.y);
+					ñheckNow->AddElement(player.pos.x, player.pos.y);
 					for (int i = 0; i < 11; i++)
 					{
 						for (int j = 0; j < 15; j++)
@@ -328,8 +329,8 @@ int main()
 
 		// All drawing goes here
 
-		playGround[2][7] = 0;
-		barricade.Rendering(renderer, 7, 2);
+		//playGround[2][7] = 0;
+		//bplayGroundicade.Rendering(renderer, 7, 2);
 
 		for (int i = 0; i < 5; i++)
 		{
@@ -343,26 +344,142 @@ int main()
 		// Let's draw a sample image
 		deltaTime = DeltaTime(&lastTick, &firstTick);
 
-		//GoLeft
-		if (currX < x)
+		while (finding)
 		{
-			x -= speed * deltaTime;
+			unsigned char x = ñheckNow->LastElement->X;
+			unsigned char y = ñheckNow->LastElement->Y;
+			if (x - 1 >= 0 && (playGround[y][x - 1] == 1 || playGround[y][x - 1] == 255))		// LEFT POINT
+			{
+				if (playGround[y][x - 1] != 255)
+				{
+					chechNext->AddElement(x - 1, y);
+				}
+				else
+				{
+					path.AddElement(x - 1, y);
+					pathGenerate = true;
+				}
+				playGround[y][x - 1] = playGround[y][x] + 1;
+			}
+
+
+			if (y - 1 >= 0 && (playGround[y - 1][x] == 1 || playGround[y - 1][x] == 255))		//UP POINT
+			{
+				if (playGround[y - 1][x] != 255)
+				{
+					chechNext->AddElement(x, y - 1);
+				}
+				else
+				{
+					path.AddElement(x, y - 1);
+					pathGenerate = true;
+				}
+				playGround[y - 1][x] = playGround[y][x] + 1;
+			}
+
+			if (x + 1 < 15 && (playGround[y][x + 1] == 1 || playGround[y][x + 1] == 255))			//RIGTH POINT
+			{
+
+				if (playGround[y][x + 1] != 255)
+				{
+					chechNext->AddElement(x + 1, y);
+				}
+				else
+				{
+					path.AddElement(x + 1, y);
+					pathGenerate = true;
+				}
+				playGround[y][x + 1] = playGround[y][x] + 1;
+			}
+
+			if (y + 1 < 11 && (playGround[y + 1][x] == 1 || playGround[y + 1][x] == 255))		//DOWN POINT
+			{
+				if (playGround[y + 1][x] != 255)
+				{
+					chechNext->AddElement(x, y + 1);
+				}
+				else
+				{
+					path.AddElement(x, y + 1);
+					pathGenerate = true;
+				}
+				playGround[y + 1][x] = playGround[y][x] + 1;
+			}
+			ñheckNow->DeleteLastElement();
+			if (!ñheckNow->LastElement)
+			{
+				if (chechNext->LastElement)
+				{
+					Stack* temp = ñheckNow;
+					ñheckNow = chechNext;
+					chechNext = temp;
+				}
+				else
+				{
+					finding = false;
+					break;
+				}
+			}
+
+
+			while (pathGenerate)
+			{
+
+				unsigned char x = path.LastElement->X;
+				unsigned char y = path.LastElement->Y;
+				if (playGround[y][x] <= 3)
+				{
+					finding = false;
+					pathGenerate = false;
+					break;
+				}
+				if (x - 1 >= 0 && playGround[y][x - 1] == playGround[y][x] - 1)
+				{
+					path.AddElement(x - 1, y);
+				}
+				else if (x + 1 < 15 && playGround[y][x + 1] == playGround[y][x] - 1)
+				{
+					path.AddElement(x + 1, y);
+				}
+				else if (y - 1 >= 0 && playGround[y - 1][x] == playGround[y][x] - 1)
+				{
+					path.AddElement(x, y - 1);
+				}
+				else if (y + 1 < 11 && playGround[y + 1][x] == playGround[y][x] - 1)
+				{
+					path.AddElement(x, y + 1);
+				}
+
+			}
 		}
-		//GoRight
-		if (currX > x)
+
+		if (path.LastElement)
 		{
-			x += speed * deltaTime;
+			player.pos.x = path.LastElement->X;
+			player.pos.y = path.LastElement->Y;
+			path.DeleteLastElement();
+			Sleep(100);
 		}
-		//GoUp
-		if (currY > y)
-		{
-			y += speed * deltaTime;
-		}
-		//GoDown
-		if (currY < y)
-		{
-			y -= speed * deltaTime;
-		}
+		////GoLeft
+		//if (currX < x)
+		//{
+		//	x -= speed * deltaTime;
+		//}
+		////GoRight
+		//if (currX > x)
+		//{
+		//	x += speed * deltaTime;
+		//}
+		////GoUp
+		//if (currY > y)
+		//{
+		//	y += speed * deltaTime;
+		//}
+		////GoDown
+		//if (currY < y)
+		//{
+		//	y -= speed * deltaTime;
+		//}
 
 
 		// Here is the rectangle where the image will be on the screen
@@ -386,6 +503,10 @@ int main()
 
 		// next frame...
 	}
+	//Some problems with free array ^_^
+	//free(playGround);
+	//barricade.Destroy();
+	//player.Destroy();
 
 	SDL_DestroyTexture(texture);
 	// If we reached here then the main loop stoped
