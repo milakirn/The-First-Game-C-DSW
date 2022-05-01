@@ -380,7 +380,7 @@ int main()
 		//	nullptr, // The center of the rotation (when nullptr, the rect center is taken)
 		//	SDL_FLIP_NONE); // We don't want to flip the image
 
-
+		player.Rendering(renderer);
 // Showing the screen to the player
 		SDL_RenderPresent(renderer);
 
