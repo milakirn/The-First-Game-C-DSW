@@ -258,7 +258,9 @@ int main()
 
 
 	SDL_Surface* temp;
-	temp = SDL_CreateRGBSurface(0, widthInPixels, heightInPixels, 32, 255, 0, 0, 0);
+	temp = SDL_CreateRGBSurface(0, widthInPixels, heightInPixels, 32, 0, 0, 0, 0);
+
+	SDL_FillRect(temp, NULL, SDL_MapRGB(temp->format, 255, 0, 0));
 
 	barricade.Init(SDL_CreateTextureFromSurface(renderer, temp), widthInPixels, heightInPixels);
 
@@ -332,14 +334,14 @@ int main()
 		playGround[2][7] = 0;
 		barricade.Rendering(renderer, 7, 2);
 
-		for (int i = 0; i < 5; i++)
-		{
-			int x = rand() % 15;
-			int y = rand() % 11;
-			
-			playGround[y][x] = 0;
-			barricade.Rendering(renderer, x, y);
-		}
+		//for (int i = 0; i < 5; i++)
+		//{
+		//	int x = rand() % 15;
+		//	int y = rand() % 11;
+		//	
+		//	playGround[y][x] = 0;
+		//	barricade.Rendering(renderer, x, y);
+		//}
 
 		// Let's draw a sample image
 		deltaTime = DeltaTime(&lastTick, &firstTick);
