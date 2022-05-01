@@ -329,8 +329,8 @@ int main()
 
 		// All drawing goes here
 
-		//playGround[2][7] = 0;
-		//bplayGroundicade.Rendering(renderer, 7, 2);
+		playGround[2][7] = 0;
+		barricade.Rendering(renderer, 7, 2);
 
 		for (int i = 0; i < 5; i++)
 		{
