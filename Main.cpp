@@ -8,10 +8,15 @@
 
 //This project will be continue :)
 
-unsigned int DeltaTime(unsigned int* lastTick, unsigned int* firstTick)
+const int WIDTH = 15;
+const int HEIGHT = 11;
+
+typedef unsigned int uint;
+
+uint DeltaTime(uint* lastTick, uint* firstTick)
 {
 	*firstTick = SDL_GetTicks();
-	unsigned int deltaTime = *firstTick - *lastTick;
+	uint deltaTime = *firstTick - *lastTick;
 	*lastTick = *firstTick;
 	return deltaTime;
 }
@@ -45,35 +50,42 @@ SDL_Texture* LoadTexture(const char* filename, int* width, int* height, SDL_Rend
 	return texture;
 }
 
-struct Vector_2
+struct Vector2i
 {
-	int x;
-	int y;
+	uint x;
+	uint y;
 };
 
-struct Barrier
+struct Vector2f
+{
+	float x;
+	float y;
+};
+
+
+struct Image
 {
 	SDL_Texture* texture;
-	Vector_2 size;
+	Vector2i texSize;
 	void Init(SDL_Texture* tex, int width, int height);
-	void Rendering(SDL_Renderer* renderer, double x, double y);
 	void Destroy();
+	void Render(SDL_Renderer* renderer, float x, float y);
 };
 
-void Barrier::Init(SDL_Texture* tex, int width, int height)
+void Image::Init(SDL_Texture* tex, int width, int height)
 {
 	texture = tex;
-	size.x = width;
-	size.y = height;
+	texSize.x = width;
+	texSize.y = height;
 }
 
-void Barrier::Rendering(SDL_Renderer* renderer, double x, double y)
+void Image::Render(SDL_Renderer* renderer, float x, float y)
 {
 	SDL_Rect rect;
 	rect.x = (int)round(x * 1920 / 15);
 	rect.y = (int)round(y * 1080 / 11);
-	rect.w = (int)size.x;
-	rect.h = (int)size.y;
+	rect.w = (int)texSize.x;
+	rect.h = (int)texSize.y;
 
 	SDL_RenderCopyEx(renderer,
 		texture,
@@ -84,43 +96,42 @@ void Barrier::Rendering(SDL_Renderer* renderer, double x, double y)
 		SDL_FLIP_NONE);
 }
 
-void Barrier::Destroy()
+void Image::Destroy()
 {
 	SDL_DestroyTexture(texture);
 }
 
 
-struct Player
+struct Character
 {
-	Barrier Barrier;
-	Vector_2 pos;
-	void Init(SDL_Texture* tex, int width, int height, int PositionX, int PositionY);
-	void Rendering(SDL_Renderer* renderer);
+	Image Image;
+	Vector2i pos;
+	void Init(SDL_Texture* tex, int width, int height, int positionX, int positionY);
+	void Render(SDL_Renderer* renderer);
 	void Destroy();
 };
 
-void Player::Init(SDL_Texture* tex, int width, int height, int PositionX, int PositionY)
+void Character::Init(SDL_Texture* tex, int width, int height, int positionX, int positionY)
 {
-	Barrier.Init(tex, width, height);
-	pos.x = PositionX;
-	pos.y = PositionY;
+	Image.Init(tex, width, height);
+	pos.x = positionX;
+	pos.y = positionY;
 }
 
-void Player::Rendering(SDL_Renderer* renderer)
+void Character::Render(SDL_Renderer* renderer)
 {
-	Barrier.Rendering(renderer, pos.x, pos.y);
+	Image.Render(renderer, pos.x, pos.y);
 }
 
-void Player::Destroy()
+void Character::Destroy()
 {
-	SDL_DestroyTexture(Barrier.texture);
+	SDL_DestroyTexture(Image.texture);
 }
 
 struct List
 {
 	List* PastElement;
-	unsigned char X;
-	unsigned char Y;
+	Vector2i position;
 };
 
 struct Stack
@@ -135,8 +146,8 @@ void Stack::AddElement(int x, int y)
 {
 	List* NewElement = (List*)malloc(sizeof(List));
 	NewElement->PastElement = LastElement;
-	NewElement->X = x;
-	NewElement->Y = y;
+	NewElement->position.x = x;
+	NewElement->position.y = y;
 	LastElement = NewElement;
 }
 
@@ -251,8 +262,8 @@ int main()
 	bool finding = false;
 	bool pathGenerate = false;
 
-	Barrier barricade;
-	Player player;
+	Image barricade;
+	Character character;
 
 	SDL_Texture* texture = LoadTexture(image_path, &tex_width, &tex_height, renderer);
 
@@ -264,7 +275,7 @@ int main()
 
 	barricade.Init(SDL_CreateTextureFromSurface(renderer, temp), widthInPixels, heightInPixels);
 
-	player.Init(texture, widthInPixels, heightInPixels, 5, 9);
+	character.Init(texture, widthInPixels, heightInPixels, 5, 9);
 	SDL_FreeSurface(temp);
 
 	Stack stack_1, stack_2;
@@ -310,7 +321,7 @@ int main()
 					ñheckNow->Clear();
 					chechNext->Clear();
 					path.Clear();
-					ñheckNow->AddElement(player.pos.x, player.pos.y);
+					ñheckNow->AddElement(character.pos.x, character.pos.y);
 					for (int i = 0; i < 11; i++)
 					{
 						for (int j = 0; j < 15; j++)
@@ -318,7 +329,7 @@ int main()
 							playGround[i][j] = 1;
 						}
 					}
-					playGround[player.pos.y][player.pos.x] = 2;
+					playGround[character.pos.y][character.pos.x] = 2;
 					playGround[currY / heightInPixels][currX / widthInPixels] = 255;
 					finding = true;
 					break;
@@ -332,7 +343,7 @@ int main()
 		// All drawing goes here
 
 		playGround[2][7] = 0;
-		barricade.Rendering(renderer, 7, 2);
+		barricade.Render(renderer, 7, 2);
 
 		//for (int i = 0; i < 5; i++)
 		//{
@@ -340,7 +351,7 @@ int main()
 		//	int y = rand() % 11;
 		//	
 		//	playGround[y][x] = 0;
-		//	barricade.Rendering(renderer, x, y);
+		//	barricade.Render(renderer, x, y);
 		//}
 
 		// Let's draw a sample image
@@ -348,8 +359,8 @@ int main()
 
 		while (finding)
 		{
-			unsigned char x = ñheckNow->LastElement->X;
-			unsigned char y = ñheckNow->LastElement->Y;
+			unsigned char x = ñheckNow->LastElement->position.x;
+			unsigned char y = ñheckNow->LastElement->position.y;
 			if (x - 1 >= 0 && (playGround[y][x - 1] == 1 || playGround[y][x - 1] == 255))		// LEFT POINT
 			{
 				if (playGround[y][x - 1] != 255)
@@ -427,8 +438,8 @@ int main()
 			while (pathGenerate)
 			{
 
-				unsigned char x = path.LastElement->X;
-				unsigned char y = path.LastElement->Y;
+				unsigned char x = path.LastElement->position.x;
+				unsigned char y = path.LastElement->position.y;
 				if (playGround[y][x] <= 3)
 				{
 					finding = false;
@@ -457,8 +468,8 @@ int main()
 
 		if (path.LastElement)
 		{
-			player.pos.x = path.LastElement->X;
-			player.pos.y = path.LastElement->Y;
+			character.pos.x = path.LastElement->position.x;
+			character.pos.y = path.LastElement->position.y;
 			path.DeleteLastElement();
 			Sleep(100);
 		}
@@ -499,7 +510,7 @@ int main()
 		//	nullptr, // The center of the rotation (when nullptr, the rect center is taken)
 		//	SDL_FLIP_NONE); // We don't want to flip the image
 
-		player.Rendering(renderer);
+		character.Render(renderer);
 // Showing the screen to the player
 		SDL_RenderPresent(renderer);
 
@@ -508,7 +519,7 @@ int main()
 	//Some problems with free array ^_^
 	//free(playGround);
 	//barricade.Destroy();
-	//player.Destroy();
+	//character.Destroy();
 
 	SDL_DestroyTexture(texture);
 	// If we reached here then the main loop stoped
